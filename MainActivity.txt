@@ -1,0 +1,70 @@
+package com.example.userformfirebase;
+
+import android.os.Bundle;
+import android.text.TextUtils;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class MainActivity extends AppCompatActivity {
+
+    private FirebaseFirestore firestore;
+    private EditText editTextName, editTextEmail;
+    private Button buttonSubmit;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        firestore = FirebaseFirestore.getInstance();
+
+        editTextName = findViewById(R.id.editTextName);
+        editTextEmail = findViewById(R.id.editTextEmail);
+        buttonSubmit = findViewById(R.id.buttonSubmit);
+
+        buttonSubmit.setOnClickListener(v -> addUserToFirestore());
+    }
+
+    private void addUserToFirestore() {
+        String name = editTextName.getText().toString().trim();
+        String email = editTextEmail.getText().toString().trim();
+
+        if (TextUtils.isEmpty(name)) {
+            Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (TextUtils.isEmpty(email)) {
+            Toast.makeText(this, "Please enter an email", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Map<String, Object> user = new HashMap<>();
+        user.put("name", name);
+        user.put("email", email);
+
+        firestore.collection("users").add(user)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Toast.makeText(getApplicationContext(), "User added successfully", Toast.LENGTH_LONG).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(getApplicationContext(), "Error adding user: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+}
